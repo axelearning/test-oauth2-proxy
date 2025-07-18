@@ -1,0 +1,7 @@
+internal.localhost {
+    reverse_proxy internal-service:80
+}
+
+external.localhost {
+    reverse_proxy external-service:80
+}

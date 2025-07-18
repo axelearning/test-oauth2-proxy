@@ -1,13 +1,28 @@
 version: '3.8'
 
 services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      - internal-service
+      - external-service
+
   internal-service:
     image: nginx:alpine
     container_name: internal-service
     volumes:
       - ./services/internal-html:/usr/share/nginx/html:ro
-    ports:
-      - "8081:80"
     networks:
       - app-network
     restart: unless-stopped
@@ -17,8 +32,6 @@ services:
     container_name: external-service
     volumes:
       - ./services/external-html:/usr/share/nginx/html:ro
-    ports:
-      - "8080:80"
     networks:
       - app-network
     restart: unless-stopped
@@ -26,3 +39,7 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:
