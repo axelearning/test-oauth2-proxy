@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  internal-service:
+    image: nginx:alpine
+    container_name: internal-service
+    volumes:
+      - ./services/internal-html:/usr/share/nginx/html:ro
+    networks:
+      - internal
+    # No ports exposed - only accessible internally
+    restart: unless-stopped
+
+  external-service:
+    image: nginx:alpine
+    container_name: external-service
+    volumes:
+      - ./services/external-html:/usr/share/nginx/html:ro
+    ports:
+      - "8080:80"
+    networks:
+      - internal
+    restart: unless-stopped
+
+networks:
+  internal:
+    driver: bridge
