@@ -1,11 +1,19 @@
-internal.localhost {
+internal.axelrasse.com:80 {
     reverse_proxy internal-service:80
 }
 
-external.localhost {
+external.axelrasse.com:80 {
     reverse_proxy external-service:80
 }
 
-portainer.localhost {
+portainer.axelrasse.com:80 {
     reverse_proxy portainer:9000
+}
+
+axelrasse.com:80 {
+    respond "Main site - Docker setup working!"
+}
+
+www.axelrasse.com:80 {
+    redir https://axelrasse.com{uri}
 }
