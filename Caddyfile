@@ -6,7 +6,7 @@ external.axelrasse.com:80 {
     reverse_proxy external-service:80
 }
 
-portainer.axelrasse.com {
+portainer.axelrasse.com:80 {
     reverse_proxy portainer:9443
 }
 
