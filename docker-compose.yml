@@ -6,9 +6,10 @@ services:
     container_name: internal-service
     volumes:
       - ./services/internal-html:/usr/share/nginx/html:ro
+    ports:
+      - "8081:80"
     networks:
-      - internal
-    # No ports exposed - only accessible internally
+      - app-network
     restart: unless-stopped
 
   external-service:
@@ -19,9 +20,9 @@ services:
     ports:
       - "8080:80"
     networks:
-      - internal
+      - app-network
     restart: unless-stopped
 
 networks:
-  internal:
+  app-network:
     driver: bridge
