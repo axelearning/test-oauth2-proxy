@@ -5,3 +5,7 @@ internal.localhost {
 external.localhost {
     reverse_proxy external-service:80
 }
+
+portainer.localhost {
+    reverse_proxy portainer:9000
+}
