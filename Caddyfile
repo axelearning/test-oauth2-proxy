@@ -6,8 +6,12 @@ external.axelrasse.com:80 {
     reverse_proxy external-service:80
 }
 
-portainer.axelrasse.com:80 {
-    reverse_proxy portainer:9443
+portainer.axelrasse.com {
+    reverse_proxy portainer:9443 {
+        transport http {
+            tls_insecure_skip_verify
+        }
+    }
 }
 
 axelrasse.com:80 {
