@@ -7,7 +7,11 @@ external.axelrasse.com:80 {
 }
 
 portainer.axelrasse.com:80 {
-    reverse_proxy portainer:9443
+    reverse_proxy portainer:9000 {
+        header_up X-Forwarded-Proto https
+        header_up X-Forwarded-Host {host}
+        header_up X-Real-IP {remote_host}
+    }
 }
 
 axelrasse.com:80 {
