@@ -59,8 +59,9 @@ services:
       - --cookie-secret=${COOKIE_SECRET}
       - --cookie-secure=false
       - --redirect-url=https://portainer.axelrasse.com/oauth2/callback
-      - --email-domain=*
       - --reverse-proxy=true
+      - --skip-provider-button=true
+      - --email-domain=*
     ports:
       - "4180:4180"
     networks:
