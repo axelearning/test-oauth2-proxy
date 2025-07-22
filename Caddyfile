@@ -1,23 +1,40 @@
-internal.axelrasse.com:80 {
-    reverse_proxy internal-service:80
-}
-
 external.axelrasse.com:80 {
-    reverse_proxy external-service:80
+	reverse_proxy external-service:80
 }
 
 portainer.axelrasse.com:80 {
-    reverse_proxy portainer:9000 {
-        header_up X-Forwarded-Proto https
-        header_up X-Forwarded-Host {host}
-        header_up X-Real-IP {remote_host}
-    }
+	handle /oauth2/* {
+		reverse_proxy oauth2-proxy:4180 {
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-Uri {uri}
+		}
+	}
+
+	handle {
+		forward_auth oauth2-proxy:4180 {
+			uri /oauth2/auth
+			
+			header_up X-Real-IP {remote_host}
+
+			# If oauth2-proxy returns a 401 status, redirect the client to the sign-in page.
+			@error status 401
+			handle_response @error {
+				redir * /oauth2/sign_in?rd={scheme}://{host}{uri}
+			}
+		}
+		
+		reverse_proxy portainer:9000 {
+			header_up X-Forwarded-Proto https
+			header_up X-Forwarded-Host {host}
+			header_up X-Real-IP {remote_host}
+		}
+	}
 }
 
 axelrasse.com:80 {
-    respond "Main site - Docker setup working!"
+	respond "Main site - Docker setup working!"
 }
 
 www.axelrasse.com:80 {
-    redir https://axelrasse.com{uri}
+	redir https://axelrasse.com{uri}
 }

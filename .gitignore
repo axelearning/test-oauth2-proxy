@@ -1,0 +1,7 @@
+# Environment variables
+.env
+
+# Docker volumes
+caddy_data/
+caddy_config/
+portainer_data/
