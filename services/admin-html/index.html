@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal - axelrasse.com</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .service-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s ease;
+            display: block;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+        
+        .service-card h3 {
+            margin-bottom: 0.5rem;
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+        
+        .service-card p {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+        
+        .status.active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.planned {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .header-info {
+            text-align: center;
+            margin-bottom: 1rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛠️ Admin Portal</h1>
+        <div class="header-info">
+            <p>Secure access to internal services</p>
+        </div>
+        
+        <div class="services-grid">
+            <a href="/admin/portainer" class="service-card">
+                <h3>📊 Portainer</h3>
+                <p>Docker container management interface</p>
+                <span class="status active">Active</span>
+            </a>
+            
+            <a href="/admin/internal1" class="service-card">
+                <h3>🔧 Internal Service 1</h3>
+                <p>Placeholder for internal application</p>
+                <span class="status planned">Planned</span>
+            </a>
+            
+            <a href="/admin/internal2" class="service-card">
+                <h3>⚙️ Internal Service 2</h3>
+                <p>Placeholder for internal application</p>
+                <span class="status planned">Planned</span>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

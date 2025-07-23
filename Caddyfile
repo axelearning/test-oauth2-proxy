@@ -2,7 +2,9 @@ external.axelrasse.com:80 {
 	reverse_proxy external-service:80
 }
 
-auth.axelrasse.com:80 {
+
+axelrasse.com:80 {
+	# OAuth2 routes outside protected routes to avoid infinite loop
 	handle /oauth2/* {
 		reverse_proxy oauth2-proxy:4180 {
 			header_up X-Real-IP {remote_host}
@@ -10,8 +12,7 @@ auth.axelrasse.com:80 {
 		}
 	}
 
-	# Portainer service
-	handle /portainer* {
+	handle /admin* {
 		forward_auth oauth2-proxy:4180 {
 			uri /oauth2/auth
 			header_up X-Real-IP {remote_host}
@@ -22,39 +23,34 @@ auth.axelrasse.com:80 {
 			}
 		}
 		
-		uri strip_prefix /portainer
-		reverse_proxy portainer:9000 {
-			header_up X-Forwarded-Proto https
-			header_up X-Forwarded-Host {host}
-			header_up X-Real-IP {remote_host}
+		handle /admin/portainer* {
+			uri strip_prefix /admin/portainer
+			reverse_proxy portainer:9000 {
+				header_up X-Forwarded-Proto https
+				header_up X-Forwarded-Host {host}
+				header_up X-Real-IP {remote_host}
+			}
+		}
+		
+		handle /admin/internal1* {
+			uri strip_prefix /admin/internal1
+			reverse_proxy internal1:80
+		}
+		
+		handle /admin/internal2* {
+			uri strip_prefix /admin/internal2
+			reverse_proxy internal2:80
+		}
+		
+		handle /admin* {
+			uri strip_prefix /admin
+			reverse_proxy admin-service:80
 		}
 	}
 
-	# Add more services like this:
-	# handle /service1* {
-	#	forward_auth oauth2-proxy:4180 {
-	#		uri /oauth2/auth
-	#		header_up X-Real-IP {remote_host}
-	#		@error status 401
-	#		handle_response @error {
-	#			redir * /oauth2/sign_in?rd={scheme}://{host}{uri}
-	#		}
-	#	}
-	#	uri strip_prefix /service1
-	#	reverse_proxy service1:3000
-	# }
-
-	# Default redirect
 	handle {
-		respond "Available services:
-			https://auth.axelrasse.com/portainer
-		"
+		respond "Main site - Docker setup working!"
 	}
-}
-
-
-axelrasse.com:80 {
-	respond "Main site - Docker setup working!"
 }
 
 www.axelrasse.com:80 {

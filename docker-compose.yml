@@ -35,6 +35,33 @@ services:
       - app-network
     restart: unless-stopped
 
+  admin-service:
+    image: nginx:alpine
+    container_name: admin-service
+    volumes:
+      - ./services/admin-html:/usr/share/nginx/html:ro
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  internal1:
+    image: nginx:alpine
+    container_name: internal1
+    volumes:
+      - ./services/internal1-html:/usr/share/nginx/html:ro
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  internal2:
+    image: nginx:alpine
+    container_name: internal2
+    volumes:
+      - ./services/internal2-html:/usr/share/nginx/html:ro
+    networks:
+      - app-network
+    restart: unless-stopped
+
   portainer:
     image: portainer/portainer-ce:latest
     container_name: portainer
@@ -61,7 +88,7 @@ services:
       - --reverse-proxy=true
       - --skip-provider-button=true
       - --email-domain=*
-      - --redirect-url=https://auth.axelrasse.com/oauth2/callback
+      - --redirect-url=https://axelrasse.com/oauth2/callback
       - --set-xauthrequest=true
     ports:
       - "4180:4180"
