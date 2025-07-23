@@ -2,7 +2,7 @@ external.axelrasse.com:80 {
 	reverse_proxy external-service:80
 }
 
-portainer.axelrasse.com:80 {
+auth.axelrasse.com:80 {
 	handle /oauth2/* {
 		reverse_proxy oauth2-proxy:4180 {
 			header_up X-Real-IP {remote_host}
@@ -10,26 +10,48 @@ portainer.axelrasse.com:80 {
 		}
 	}
 
-	handle {
+	# Portainer service
+	handle /portainer* {
 		forward_auth oauth2-proxy:4180 {
 			uri /oauth2/auth
-			
 			header_up X-Real-IP {remote_host}
 
-			# If oauth2-proxy returns a 401 status, redirect the client to the sign-in page.
 			@error status 401
 			handle_response @error {
 				redir * /oauth2/sign_in?rd={scheme}://{host}{uri}
 			}
 		}
 		
+		uri strip_prefix /portainer
 		reverse_proxy portainer:9000 {
 			header_up X-Forwarded-Proto https
 			header_up X-Forwarded-Host {host}
 			header_up X-Real-IP {remote_host}
 		}
 	}
+
+	# Add more services like this:
+	# handle /service1* {
+	#	forward_auth oauth2-proxy:4180 {
+	#		uri /oauth2/auth
+	#		header_up X-Real-IP {remote_host}
+	#		@error status 401
+	#		handle_response @error {
+	#			redir * /oauth2/sign_in?rd={scheme}://{host}{uri}
+	#		}
+	#	}
+	#	uri strip_prefix /service1
+	#	reverse_proxy service1:3000
+	# }
+
+	# Default redirect
+	handle {
+		respond "Available services:
+			https://auth.axelrasse.com/portainer
+		"
+	}
 }
+
 
 axelrasse.com:80 {
 	respond "Main site - Docker setup working!"

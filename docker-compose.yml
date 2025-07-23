@@ -58,10 +58,11 @@ services:
       - --client-secret=${GITHUB_CLIENT_SECRET}
       - --cookie-secret=${COOKIE_SECRET}
       - --cookie-secure=false
-      - --redirect-url=https://portainer.axelrasse.com/oauth2/callback
       - --reverse-proxy=true
       - --skip-provider-button=true
       - --email-domain=*
+      - --redirect-url=https://auth.axelrasse.com/oauth2/callback
+      - --set-xauthrequest=true
     ports:
       - "4180:4180"
     networks:
