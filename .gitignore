@@ -5,3 +5,6 @@
 caddy_data/
 caddy_config/
 portainer_data/
+
+# Runtime logs
+logs/

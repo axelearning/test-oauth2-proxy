@@ -1,50 +1,44 @@
-# Reusable snippets
-(standard_headers) {
-	header_up X-Forwarded-Proto {scheme}
-	header_up X-Forwarded-Host {host}
-	header_up X-Real-IP {remote_host}
-}
+# Admin Portal - OAuth2 Protected Services
+# Provides access to Portainer, internal services, and admin tools
+# Requires GitHub OAuth2 authentication via oauth2-proxy
 
-# Public services (no auth required)
-external.axelrasse.com:80 {
-	reverse_proxy external-service:80
-}
-
-# Main site
-axelrasse.com:80 {
-	respond "Main site - Docker setup working!"
-}
-
-# Admin portal with subpath routing (OAuth required)
 admin.axelrasse.com:80 {
-	# OAuth2 routes (no auth required)
+	
+	# OAuth2 authentication routes (no auth required for these)
+	# Handles GitHub OAuth2 flow
 	handle /oauth2/* {
 		reverse_proxy oauth2-proxy:4180 {
 			header_up X-Real-IP {remote_host}
 			header_up X-Forwarded-Uri {uri}
 		}
 	}
-	
+
+	handle / {
+		redir /portal permanent
+	}
+
 	# All other routes require authentication
 	handle {
+		import security_headers
+		
 		forward_auth oauth2-proxy:4180 {
 			uri /oauth2/auth
 			header_up X-Real-IP {remote_host}
 			
 			@error status 401
 			handle_response @error {
-				redir * {scheme}://{host}/oauth2/sign_in
+				redir * https://{host}/oauth2/sign_in
 			}
 		}
-			
-		# Portainer service
+		
+		# Portainer - Container management interface
 		handle /portainer* {
 			uri strip_prefix /portainer
 			reverse_proxy portainer:9000 {
 				import standard_headers
 			}
 		}
-			
+		
 		# Internal service 1
 		handle /internal1* {
 			uri strip_prefix /internal1
@@ -52,7 +46,7 @@ admin.axelrasse.com:80 {
 				import standard_headers
 			}
 		}
-			
+		
 		# Internal service 2
 		handle /internal2* {
 			uri strip_prefix /internal2
@@ -60,7 +54,7 @@ admin.axelrasse.com:80 {
 				import standard_headers
 			}
 		}
-			
+		
 		# Admin portal root and /portal subpath
 		handle /portal* {
 			uri strip_prefix /portal
@@ -68,24 +62,18 @@ admin.axelrasse.com:80 {
 				import standard_headers
 			}
 		}
-			
-		# User info endpoint that returns OAuth2 proxy headers as JSON
+		
+		# User info endpoint - Returns OAuth2 proxy headers as JSON
 		handle /user-info.json {
 			rewrite * /oauth2/userinfo
 			reverse_proxy oauth2-proxy:4180 {
 				import standard_headers
 			}
 		}
-			
-		# Default to admin portal (root)
+		
+		# Fallback for any other undefined routes
 		handle {
-			reverse_proxy admin-service:80 {
-				import standard_headers
-			}
+			redir /portal permanent
 		}
 	}
-}
-
-www.axelrasse.com:80 {
-	redir https://axelrasse.com{uri}
 }

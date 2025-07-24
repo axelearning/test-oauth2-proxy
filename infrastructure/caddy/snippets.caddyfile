@@ -1,0 +1,21 @@
+# Reusable Snippets
+# This file contains all reusable configuration snippets
+
+# Standard headers for upstream services (Caddy -> Backend)
+(standard_headers) {
+	header_up X-Forwarded-Proto {scheme}
+	header_up X-Forwarded-Host {host}
+	header_up X-Real-IP {remote_host}
+}
+
+# Security headers for client responses (Client <- Caddy)
+(security_headers) {
+	header {
+		X-Frame-Options "SAMEORIGIN"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		X-XSS-Protection "1; mode=block"
+	}
+}
+

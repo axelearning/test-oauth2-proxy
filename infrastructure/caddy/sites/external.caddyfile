@@ -1,0 +1,7 @@
+# External Service - Public Access
+# No authentication required, public facing service
+
+external.axelrasse.com:80 {
+	import security_headers
+	reverse_proxy external-service:80
+}

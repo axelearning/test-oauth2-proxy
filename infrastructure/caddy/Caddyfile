@@ -1,0 +1,20 @@
+# OAuth2 Proxy Setup - Main Configuration
+# This file orchestrates the entire setup with global config and imports
+
+# Global configuration
+{
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 100MiB
+			roll_keep 5
+		}
+		format json
+		level INFO
+	}
+}
+
+# Import reusable snippets
+import snippets.caddy
+
+# Import all site configurations
+import sites/*.caddy

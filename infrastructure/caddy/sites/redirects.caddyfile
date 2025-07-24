@@ -1,0 +1,7 @@
+# URL Redirects
+# Handles www subdomain and other redirections
+
+www.axelrasse.com:80 {
+	import security_headers
+	redir https://axelrasse.com{uri}
+}
