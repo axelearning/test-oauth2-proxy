@@ -38,7 +38,7 @@ admin.axelrasse.com:80 {
 				
 				@error status 401
 				handle_response @error {
-					redir * https://admin.axelrasse.com/oauth2/sign_in?rd={scheme}://{host}{uri}
+					redir * https://admin.axelrasse.com/oauth2/sign_in
 				}
 			}
 			
