@@ -89,7 +89,7 @@ services:
       - --reverse-proxy=true
       - --skip-provider-button=true
       - --email-domain=*
-      - --redirect-url=https://axelrasse.com/oauth2/callback
+      - --redirect-url=https://admin.axelrasse.com/oauth2/callback
       - --set-xauthrequest=true
     ports:
       - "4180:4180"

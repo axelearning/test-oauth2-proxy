@@ -19,72 +19,69 @@ axelrasse.com:80 {
 	}
 }
 
-# Protected services (OAuth required)
-portainer.axelrasse.com:80 {
-	forward_auth oauth2-proxy:4180 {
-		uri /oauth2/auth
-		header_up X-Real-IP {remote_host}
-		
-		@error status 401
-		handle_response @error {
-			redir * https://axelrasse.com/oauth2/sign_in?rd={scheme}://{host}{uri}
-		}
-	}
-	
-	reverse_proxy portainer:9000 {
-		header_up X-Forwarded-Proto https
-		header_up X-Forwarded-Host {host}
-		header_up X-Real-IP {remote_host}
-	}
-}
-
-internal1.axelrasse.com:80 {
-	forward_auth oauth2-proxy:4180 {
-		uri /oauth2/auth
-		header_up X-Real-IP {remote_host}
-		
-		@error status 401
-		handle_response @error {
-			redir * https://axelrasse.com/oauth2/sign_in?rd={scheme}://{host}{uri}
-		}
-	}
-	
-	reverse_proxy internal1:80
-}
-
-internal2.axelrasse.com:80 {
-	forward_auth oauth2-proxy:4180 {
-		uri /oauth2/auth
-		header_up X-Real-IP {remote_host}
-		
-		@error status 401
-		handle_response @error {
-			redir * https://axelrasse.com/oauth2/sign_in?rd={scheme}://{host}{uri}
-		}
-	}
-	
-	reverse_proxy internal2:80
-}
-
-# Enhanced admin portal
+# Admin portal with subpath routing (OAuth required)
 admin.axelrasse.com:80 {
-	forward_auth oauth2-proxy:4180 {
-		uri /oauth2/auth
-		header_up X-Real-IP {remote_host}
+	route {
+		# OAuth2 routes (no auth required)
+		handle /oauth2/* {
+			reverse_proxy oauth2-proxy:4180 {
+				header_up X-Real-IP {remote_host}
+				header_up X-Forwarded-Uri {uri}
+			}
+		}
 		
-		@error status 401
-		handle_response @error {
-			redir * https://axelrasse.com/oauth2/sign_in?rd={scheme}://{host}{uri}
+		# All other routes require authentication
+		handle {
+			forward_auth oauth2-proxy:4180 {
+				uri /oauth2/auth
+				header_up X-Real-IP {remote_host}
+				
+				@error status 401
+				handle_response @error {
+					redir * https://admin.axelrasse.com/oauth2/sign_in?rd={scheme}://{host}{uri}
+				}
+			}
+			
+			# Portainer service
+			handle /portainer* {
+				uri strip_prefix /portainer
+				reverse_proxy portainer:9000 {
+					header_up X-Forwarded-Proto https
+					header_up X-Forwarded-Host {host}
+					header_up X-Real-IP {remote_host}
+				}
+			}
+			
+			# Internal service 1
+			handle /internal1* {
+				uri strip_prefix /internal1
+				reverse_proxy internal1:80
+			}
+			
+			# Internal service 2
+			handle /internal2* {
+				uri strip_prefix /internal2
+				reverse_proxy internal2:80
+			}
+			
+			# Admin portal root and /portal subpath
+			handle /portal* {
+				uri strip_prefix /portal
+				reverse_proxy admin-service:80
+			}
+			
+			# User info endpoint that returns OAuth2 proxy headers as JSON
+			handle /user-info.json {
+				rewrite * /oauth2/userinfo
+				reverse_proxy oauth2-proxy:4180
+			}
+			
+			# Default to admin portal (root)
+			handle {
+				reverse_proxy admin-service:80
+			}
 		}
 	}
-	
-	# User info endpoint that returns OAuth2 proxy headers as JSON
-	handle /user-info.json {
-		header Content-Type application/json
-		respond `{"username": "{http.request.header.X-Forwarded-User}", "email": "{http.request.header.X-Forwarded-Email}"}`
-	}
-	
-	reverse_proxy admin-service:80
 }
 
 www.axelrasse.com:80 {
