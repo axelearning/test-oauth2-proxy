@@ -272,7 +272,7 @@
         </div>
 
         <div class="services" id="servicesList">
-            <a href="https://portainer.axelrasse.com" class="service" data-name="portainer docker container management">
+            <a href="/portainer" class="service" data-name="portainer docker container management">
                 <div class="service-info">
                     <div class="service-icon">🐳</div>
                     <div class="service-details">
@@ -286,7 +286,7 @@
                 </div>
             </a>
 
-            <a href="https://internal1.axelrasse.com" class="service" data-name="internal service development application">
+            <a href="/internal1" class="service" data-name="internal service development application">
                 <div class="service-info">
                     <div class="service-icon">🔧</div>
                     <div class="service-details">
@@ -295,12 +295,12 @@
                     </div>
                 </div>
                 <div class="service-status">
-                    <div class="status-dot planned"></div>
-                    <span class="status-text planned">Planned</span>
+                    <div class="status-dot active"></div>
+                    <span class="status-text active">Running</span>
                 </div>
             </a>
 
-            <a href="https://internal2.axelrasse.com" class="service" data-name="internal service development application">
+            <a href="/internal2" class="service" data-name="internal service development application">
                 <div class="service-info">
                     <div class="service-icon">⚙️</div>
                     <div class="service-details">
@@ -309,8 +309,8 @@
                     </div>
                 </div>
                 <div class="service-status">
-                    <div class="status-dot planned"></div>
-                    <span class="status-text planned">Planned</span>
+                    <div class="status-dot active"></div>
+                    <span class="status-text active">Running</span>
                 </div>
             </a>
         </div>
@@ -351,10 +351,9 @@
             }
         });
 
-        // Load user info from OAuth2 proxy headers
+        // Load user info from OAuth2 proxy
         async function loadUserInfo() {
             try {
-                // Try to fetch user info from a user endpoint
                 const response = await fetch('/user-info.json', {
                     headers: {
                         'Accept': 'application/json'
@@ -363,22 +362,30 @@
                 
                 if (response.ok) {
                     const userInfo = await response.json();
-                    document.getElementById('username').textContent = userInfo.username || 'User';
+                    console.log('Loaded user info:', userInfo);
+                    
+                    // OAuth2 proxy returns different field names
+                    const username = userInfo.login || userInfo.user || userInfo.preferred_username || userInfo.email || 'User';
+                    const email = userInfo.email || '';
+                    
+                    document.getElementById('username').textContent = username;
                     const avatar = document.getElementById('userAvatar');
-                    avatar.textContent = (userInfo.username || 'User').charAt(0).toUpperCase();
+                    avatar.textContent = username.charAt(0).toUpperCase();
+                    
+                    // Update title attribute for email on hover
+                    const usernameElement = document.getElementById('username');
+                    if (email) {
+                        usernameElement.title = email;
+                    }
                 } else {
                     throw new Error('Failed to fetch user info');
                 }
             } catch (error) {
-                console.log('Could not load user info, using default');
+                console.error('Could not load user info:', error);
                 // Fallback to default user info
-                const userInfo = {
-                    username: 'axelrasse'
-                };
-
-                document.getElementById('username').textContent = userInfo.username;
+                document.getElementById('username').textContent = 'User';
                 const avatar = document.getElementById('userAvatar');
-                avatar.textContent = userInfo.username.charAt(0).toUpperCase();
+                avatar.textContent = 'U';
             }
         }
 
