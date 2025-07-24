@@ -1,11 +1,23 @@
+# Reusable snippets
+(standard_headers) {
+	header_up X-Forwarded-Proto {scheme}
+	header_up X-Forwarded-Host {host}
+	header_up X-Real-IP {remote_host}
+}
+
 # Public services (no auth required)
 external.axelrasse.com:80 {
 	reverse_proxy external-service:80
 }
 
-# Main site with OAuth endpoints
+# Main site
 axelrasse.com:80 {
-	# OAuth2 routes for all protected subdomains
+	respond "Main site - Docker setup working!"
+}
+
+# Admin portal with subpath routing (OAuth required)
+admin.axelrasse.com:80 {
+	# OAuth2 routes (no auth required)
 	handle /oauth2/* {
 		reverse_proxy oauth2-proxy:4180 {
 			header_up X-Real-IP {remote_host}
@@ -13,72 +25,62 @@ axelrasse.com:80 {
 		}
 	}
 	
-	# Main site response
+	# All other routes require authentication
 	handle {
-		respond "Main site - Docker setup working!"
-	}
-}
-
-# Admin portal with subpath routing (OAuth required)
-admin.axelrasse.com:80 {
-	route {
-		# OAuth2 routes (no auth required)
-		handle /oauth2/* {
-			reverse_proxy oauth2-proxy:4180 {
-				header_up X-Real-IP {remote_host}
-				header_up X-Forwarded-Uri {uri}
+		forward_auth oauth2-proxy:4180 {
+			uri /oauth2/auth
+			header_up X-Real-IP {remote_host}
+			
+			@error status 401
+			handle_response @error {
+				redir * {scheme}://{host}/oauth2/sign_in
 			}
 		}
-		
-		# All other routes require authentication
+			
+		# Portainer service
+		handle /portainer* {
+			uri strip_prefix /portainer
+			reverse_proxy portainer:9000 {
+				import standard_headers
+			}
+		}
+			
+		# Internal service 1
+		handle /internal1* {
+			uri strip_prefix /internal1
+			reverse_proxy internal1:80 {
+				import standard_headers
+			}
+		}
+			
+		# Internal service 2
+		handle /internal2* {
+			uri strip_prefix /internal2
+			reverse_proxy internal2:80 {
+				import standard_headers
+			}
+		}
+			
+		# Admin portal root and /portal subpath
+		handle /portal* {
+			uri strip_prefix /portal
+			reverse_proxy admin-service:80 {
+				import standard_headers
+			}
+		}
+			
+		# User info endpoint that returns OAuth2 proxy headers as JSON
+		handle /user-info.json {
+			rewrite * /oauth2/userinfo
+			reverse_proxy oauth2-proxy:4180 {
+				import standard_headers
+			}
+		}
+			
+		# Default to admin portal (root)
 		handle {
-			forward_auth oauth2-proxy:4180 {
-				uri /oauth2/auth
-				header_up X-Real-IP {remote_host}
-				
-				@error status 401
-				handle_response @error {
-					redir * https://admin.axelrasse.com/oauth2/sign_in
-				}
-			}
-			
-			# Portainer service
-			handle /portainer* {
-				uri strip_prefix /portainer
-				reverse_proxy portainer:9000 {
-					header_up X-Forwarded-Proto https
-					header_up X-Forwarded-Host {host}
-					header_up X-Real-IP {remote_host}
-				}
-			}
-			
-			# Internal service 1
-			handle /internal1* {
-				uri strip_prefix /internal1
-				reverse_proxy internal1:80
-			}
-			
-			# Internal service 2
-			handle /internal2* {
-				uri strip_prefix /internal2
-				reverse_proxy internal2:80
-			}
-			
-			# Admin portal root and /portal subpath
-			handle /portal* {
-				uri strip_prefix /portal
-				reverse_proxy admin-service:80
-			}
-			
-			# User info endpoint that returns OAuth2 proxy headers as JSON
-			handle /user-info.json {
-				rewrite * /oauth2/userinfo
-				reverse_proxy oauth2-proxy:4180
-			}
-			
-			# Default to admin portal (root)
-			handle {
-				reverse_proxy admin-service:80
+			reverse_proxy admin-service:80 {
+				import standard_headers
 			}
 		}
 	}
