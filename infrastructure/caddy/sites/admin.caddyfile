@@ -12,8 +12,8 @@ admin.axelrasse.com {
 			header_up X-Forwarded-Uri {uri}
 		}
 	}
-
-	# All other routes require authentication
+	
+	# All routes require authentication
 	handle {
 		import security_headers
 		
@@ -27,7 +27,7 @@ admin.axelrasse.com {
 			}
 		}
 		
-		handle /portainer* {
+		handle_path /portainer/* {
 			reverse_proxy portainer:9000 {
 				import standard_headers
 			}
