@@ -3,6 +3,7 @@
 
 # Global configuration
 {
+	auto_https off
 	log {
 		output file /var/log/caddy/access.log {
 			roll_size 100MiB
@@ -12,9 +13,5 @@
 		level INFO
 	}
 }
-
-# Import reusable snippets
 import snippets.caddy
-
-# Import all site configurations
 import sites/*.caddy

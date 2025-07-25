@@ -2,7 +2,7 @@
 # Provides access to Portainer, internal services, and admin tools
 # Requires GitHub OAuth2 authentication via oauth2-proxy
 
-admin.axelrasse.com:80 {
+admin.axelrasse.com {
 	
 	# OAuth2 authentication routes (no auth required for these)
 	# Handles GitHub OAuth2 flow
@@ -11,10 +11,6 @@ admin.axelrasse.com:80 {
 			header_up X-Real-IP {remote_host}
 			header_up X-Forwarded-Uri {uri}
 		}
-	}
-
-	handle / {
-		redir /portal permanent
 	}
 
 	# All other routes require authentication
@@ -31,15 +27,12 @@ admin.axelrasse.com:80 {
 			}
 		}
 		
-		# Portainer - Container management interface
 		handle /portainer* {
-			uri strip_prefix /portainer
 			reverse_proxy portainer:9000 {
 				import standard_headers
 			}
 		}
 		
-		# Internal service 1
 		handle /internal1* {
 			uri strip_prefix /internal1
 			reverse_proxy internal1:80 {
@@ -47,7 +40,6 @@ admin.axelrasse.com:80 {
 			}
 		}
 		
-		# Internal service 2
 		handle /internal2* {
 			uri strip_prefix /internal2
 			reverse_proxy internal2:80 {
@@ -55,7 +47,6 @@ admin.axelrasse.com:80 {
 			}
 		}
 		
-		# Admin portal root and /portal subpath
 		handle /portal* {
 			uri strip_prefix /portal
 			reverse_proxy admin-service:80 {
@@ -71,7 +62,6 @@ admin.axelrasse.com:80 {
 			}
 		}
 		
-		# Fallback for any other undefined routes
 		handle {
 			redir /portal permanent
 		}
