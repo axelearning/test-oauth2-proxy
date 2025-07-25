@@ -8,13 +8,12 @@ volumes:
   portainer_data:
 
 services:
-
   caddy:
     image: caddy:2-alpine
     container_name: caddy
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     volumes:
       - ./infrastructure/caddy:/etc/caddy:ro
       - ./logs/caddy:/var/log/caddy
@@ -25,7 +24,6 @@ services:
     restart: unless-stopped
     depends_on:
       - external-service
-
 
   external-service:
     image: nginx:alpine
@@ -66,14 +64,18 @@ services:
   portainer:
     image: portainer/portainer-ce:latest
     container_name: portainer
-    command: ["--admin-password", "${PORTAINER_ADMIN_PASSWORD}"]
+    command:
+      [
+        '--admin-password','${PORTAINER_ADMIN_PASSWORD}',
+        '--trusted-origins','admin.axelrasse.com',
+      ]
     ports:
-      - "9000:9000"
+      - '9000:9000'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
     networks:
-    - app-network
+      - app-network
     restart: unless-stopped
 
   oauth2-proxy:
@@ -88,7 +90,7 @@ services:
     volumes:
       - ./infrastructure/oauth2-proxy/oauth2-proxy.cfg:/etc/oauth2-proxy.cfg:ro
     ports:
-      - "4180:4180"
+      - '4180:4180'
     networks:
       - app-network
     restart: unless-stopped
