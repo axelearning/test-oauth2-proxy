@@ -13,7 +13,7 @@ volumes:
 services:
 
   caddy:
-    image: caddy:2-alpine
+    image: caddy:2.10-alpine
     container_name: caddy
     ports:
       - '80:80'
@@ -30,9 +30,14 @@ services:
     depends_on:
       - metabase
       # - dagster-webserver
+    healthcheck:
+      test: wget --quiet --tries=1 --spider http://localhost:80/ || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   database:
-    image: pgduckdb/pgduckdb:16-main
+    image: pgduckdb/pgduckdb:16-v0.3.1
     container_name: database
     environment:
       POSTGRES_HOST_AUTH_METHOD: trust
@@ -46,9 +51,14 @@ services:
     restart: unless-stopped
     ports:
       - '5432:5432'
+    healthcheck:
+      test: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   pgweb:
-    image: sosedoff/pgweb:latest
+    image: sosedoff/pgweb:0.16.2
     container_name: pgweb
     environment:
       PGWEB_DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}?sslmode=disable
@@ -57,6 +67,11 @@ services:
     restart: unless-stopped
     depends_on:
       - database
+    healthcheck:
+      test: curl -f http://localhost:8081/ || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   metabase:
     image: metabase/metabase:v0.55.9
@@ -130,7 +145,7 @@ services:
   #     - dagster-daemon
 
   glances:
-    image: nicolargo/glances:latest
+    image: nicolargo/glances:4.3.2
     container_name: glances
     environment:
       - GLANCES_OPT=-w
@@ -143,9 +158,14 @@ services:
       - app-network
     restart: unless-stopped
     pid: host
+    healthcheck:
+      test: curl -f http://localhost:61208/ || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   portainer:
-    image: portainer/portainer-ce:latest
+    image: portainer/portainer-ce:2.32.0
     container_name: portainer
     command:
       [
@@ -162,7 +182,7 @@ services:
     restart: unless-stopped
 
   oauth2-proxy:
-    image: quay.io/oauth2-proxy/oauth2-proxy:latest
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.10.0-alpine
     container_name: oauth2-proxy
     command:
       - --config=/etc/oauth2-proxy.cfg
@@ -177,3 +197,8 @@ services:
     networks:
       - app-network
     restart: unless-stopped
+    healthcheck:
+      test: wget --quiet --tries=1 --spider http://localhost:4180/ping || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
