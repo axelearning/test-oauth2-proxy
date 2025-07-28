@@ -62,11 +62,9 @@ admin.axelrasse.com:80 {
 			}
 		}
 		
-		# Default route - Admin portal root
+		# Default route - Redirect to portal
 		handle {
-			reverse_proxy admin-service:80 {
-				import standard_headers
-			}
+			redir * /portal permanent
 		}
 	}
 }
