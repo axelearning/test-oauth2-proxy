@@ -1,7 +1,6 @@
 # Main Site - Status Page
 # Simple status endpoint showing Docker setup is working
 
-axelrasse.com {
-	import security_headers
+axelrasse.com:80 {
 	respond "Main site - Docker setup working!"
 }

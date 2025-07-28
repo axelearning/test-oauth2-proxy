@@ -1,8 +1,8 @@
 # Admin Portal - OAuth2 Protected Services
-# Provides access to Portainer, internal services, and admin tools
+# Provides access to admin tools
 # Requires GitHub OAuth2 authentication via oauth2-proxy
 
-admin.axelrasse.com {
+admin.axelrasse.com:80 {
 	
 	# OAuth2 authentication routes (no auth required for these)
 	# Handles GitHub OAuth2 flow
@@ -62,8 +62,11 @@ admin.axelrasse.com {
 			}
 		}
 		
+		# Default route - Admin portal root
 		handle {
-			redir /portal permanent
+			reverse_proxy admin-service:80 {
+				import standard_headers
+			}
 		}
 	}
 }
