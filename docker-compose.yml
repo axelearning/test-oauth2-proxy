@@ -21,7 +21,7 @@ services:
     volumes:
       - ./infrastructure/caddy:/etc/caddy:ro
       - ./logs/caddy:/var/log/caddy
-      - ./services/admin-html:/usr/share/caddy/admin-html:ro
+      - ./infrastructure/admin-portal:/usr/share/caddy/admin-html:ro
       - caddy_data:/data
       - caddy_config:/config
     networks:

@@ -45,8 +45,7 @@ admin.axelrasse.com:80 {
 			}
 		}
 		
-		handle /portal* {
-			uri strip_prefix /portal
+		handle_path /portal/* {
 			file_server {
 				root /usr/share/caddy/admin-html
 			}
@@ -62,7 +61,7 @@ admin.axelrasse.com:80 {
 		
 		# Default route - Redirect to portal
 		handle {
-			redir * /portal permanent
+			redir * /portal/ permanent
 		}
 	}
 }
