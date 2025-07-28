@@ -13,5 +13,5 @@
 		level INFO
 	}
 }
-import snippets.caddy
-import sites/*.caddy
+import snippets.caddyfile
+import sites/*.caddyfile
