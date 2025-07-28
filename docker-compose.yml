@@ -52,8 +52,6 @@ services:
     container_name: pgweb
     environment:
       PGWEB_DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}?sslmode=disable
-    ports:
-      - "8081:8081"
     networks:
       - app-network
     restart: unless-stopped
