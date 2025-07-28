@@ -6,8 +6,12 @@ volumes:
   caddy_data:
   caddy_config:
   portainer_data:
+  postgres_data:
+  metabase_data:
+  dagster_data:
 
 services:
+
   caddy:
     image: caddy:2-alpine
     container_name: caddy
@@ -17,56 +21,130 @@ services:
     volumes:
       - ./infrastructure/caddy:/etc/caddy:ro
       - ./logs/caddy:/var/log/caddy
+      - ./services/admin-html:/usr/share/caddy/admin-html:ro
       - caddy_data:/data
       - caddy_config:/config
     networks:
       - app-network
     restart: unless-stopped
     depends_on:
-      - external-service
+      - metabase
+      # - dagster-webserver
 
-  external-service:
-    image: nginx:alpine
-    container_name: external-service
+  database:
+    image: pgduckdb/pgduckdb:16-main
+    container_name: database
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - ./services/external-html:/usr/share/nginx/html:ro
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
     restart: unless-stopped
+    ports:
+      - '5432:5432'
 
-  admin-service:
-    image: nginx:alpine
-    container_name: admin-service
-    volumes:
-      - ./services/admin-html:/usr/share/nginx/html:ro
+  pgweb:
+    image: sosedoff/pgweb:latest
+    container_name: pgweb
+    environment:
+      PGWEB_DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}?sslmode=disable
+    ports:
+      - "8081:8081"
     networks:
       - app-network
     restart: unless-stopped
+    depends_on:
+      - database
 
-  internal1:
-    image: nginx:alpine
-    container_name: internal1
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: ${POSTGRES_DB}
+      MB_DB_HOST: ${POSTGRES_HOST}
+      MB_DB_USER: ${POSTGRES_USER}
+      MB_DB_PASS: ${POSTGRES_PASSWORD}
+      MB_DB_PORT: 5432
     volumes:
-      - ./services/internal1-html:/usr/share/nginx/html:ro
+      - metabase_data:/metabase-data
     networks:
       - app-network
     restart: unless-stopped
+    depends_on:
+      - database
 
-  internal2:
-    image: nginx:alpine
-    container_name: internal2
+
+  # dagster-daemon:
+  #   image: dagster/dagster-celery-docker:latest
+  #   container_name: dagster-daemon
+  #   entrypoint:
+  #     - dagster-daemon
+  #     - run
+  #   environment:
+  #     DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
+  #     DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #     DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
+  #     DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOST}
+  #     DAGSTER_POSTGRES_PORT: 5432
+  #   volumes:
+  #     - dagster_data:/opt/dagster/dagster_home
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   networks:
+  #     - app-network
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - database
+
+  # dagster-webserver:
+  #   image: dagster/dagster-celery-docker:latest
+  #   container_name: dagster-webserver
+  #   entrypoint:
+  #     - dagster-webserver
+  #     - -h
+  #     - 0.0.0.0
+  #     - -p
+  #     - '3000'
+  #   environment:
+  #     DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
+  #     DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #     DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
+  #     DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOST}
+  #     DAGSTER_POSTGRES_PORT: 5432
+  #   volumes:
+  #     - dagster_data:/opt/dagster/dagster_home
+  #   networks:
+  #     - app-network
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - database
+  #     - dagster-daemon
+
+  glances:
+    image: nicolargo/glances:latest
+    container_name: glances
+    environment:
+      - GLANCES_OPT=-w
     volumes:
-      - ./services/internal2-html:/usr/share/nginx/html:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
     networks:
       - app-network
     restart: unless-stopped
+    pid: host
 
   portainer:
     image: portainer/portainer-ce:latest
     container_name: portainer
     command:
       [
-        '--admin-password','${PORTAINER_ADMIN_PASSWORD}',
+        '--admin-password','${PORTAINER_ADMIN_HASH_PASSWORD}',
         '--trusted-origins','admin.axelrasse.com',
       ]
     ports:
@@ -84,9 +162,9 @@ services:
     command:
       - --config=/etc/oauth2-proxy.cfg
     environment:
-      - OAUTH2_PROXY_CLIENT_ID=${GITHUB_CLIENT_ID}
-      - OAUTH2_PROXY_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
-      - OAUTH2_PROXY_COOKIE_SECRET=${COOKIE_SECRET}
+      OAUTH2_PROXY_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      OAUTH2_PROXY_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      OAUTH2_PROXY_COOKIE_SECRET: ${COOKIE_SECRET}
     volumes:
       - ./infrastructure/oauth2-proxy/oauth2-proxy.cfg:/etc/oauth2-proxy.cfg:ro
     ports:

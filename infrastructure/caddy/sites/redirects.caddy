@@ -1,6 +1,10 @@
 # URL Redirects
 # Handles www subdomain and other redirections
 
+axelrasse.com:80 {
+	redir https://dashboard.axelrasse.com permanent
+}
+
 www.axelrasse.com:80 {
 	import security_headers
 	redir https://axelrasse.com{uri}

@@ -33,24 +33,22 @@ admin.axelrasse.com:80 {
 			}
 		}
 		
-		handle /internal1* {
-			uri strip_prefix /internal1
-			reverse_proxy internal1:80 {
+		handle_path /pgweb/* {
+			reverse_proxy pgweb:8081 {
 				import standard_headers
 			}
 		}
 		
-		handle /internal2* {
-			uri strip_prefix /internal2
-			reverse_proxy internal2:80 {
+		handle_path /glances/* {
+			reverse_proxy glances:61208 {
 				import standard_headers
 			}
 		}
 		
 		handle /portal* {
 			uri strip_prefix /portal
-			reverse_proxy admin-service:80 {
-				import standard_headers
+			file_server {
+				root /usr/share/caddy/admin-html
 			}
 		}
 		

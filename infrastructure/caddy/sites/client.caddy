@@ -1,0 +1,5 @@
+# No authentication required, public facing service
+dashboard.axelrasse.com:80 {
+	import security_headers
+	reverse_proxy metabase:3000
+}
