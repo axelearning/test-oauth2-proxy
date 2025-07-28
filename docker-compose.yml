@@ -59,7 +59,7 @@ services:
       - database
 
   metabase:
-    image: metabase/metabase:latest
+    image: metabase/metabase:v0.55.9
     container_name: metabase
     environment:
       MB_DB_TYPE: postgres
@@ -68,6 +68,8 @@ services:
       MB_DB_USER: ${POSTGRES_USER}
       MB_DB_PASS: ${POSTGRES_PASSWORD}
       MB_DB_PORT: 5432
+      MB_SITE_URL: https://dashboard.axelrasse.com
+      MB_SAMPLE_DATABASE: false
     volumes:
       - metabase_data:/metabase-data
     networks:
@@ -75,6 +77,11 @@ services:
     restart: unless-stopped
     depends_on:
       - database
+    healthcheck:
+      test: curl --fail http://localhost:3000/api/health || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 
   # dagster-daemon:
